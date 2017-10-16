@@ -40,13 +40,14 @@ const getPullRequestsVotes = async pullRequests => {
   const votes = {};
 
   for (const pullRequest of pullRequests) {
-    const dayInMilliseconds = 24 * 60 * 60 * 1000;
+    const dayInMilliseconds = 24 * 60 * 60 * 1000; // TODO handle UTC
     const pullRequestIsMature = Math.abs(new Date() - new Date(pullRequest.updated_at)) > dayInMilliseconds;
     const pullRequestIsReadyToMerge = pullRequest.labels.find(element => pullRequestLabelReadyToMerge === element.name);
 
     if (!pullRequestIsMature || !pullRequestIsReadyToMerge) {
       continue;
     }
+
 
     votes[pullRequest.number] = await getVoteResult(pullRequest.number);
   }
@@ -85,21 +86,22 @@ const getPullRequestReaction = pullRequestNumber => {
 const processPullRequest = pullRequestsVoteResults => {
   const voteResult = {};
 
-  for (const pullRequestVoteResult of pullRequestsVoteResults) {
+  for (const i in pullRequestsVoteResults) {
+    const pullRequestVoteResult = pullRequestsVoteResults[i];
     if (pullRequestVoteResult > 0) {
-      mergePullRequest();
+      mergePullRequest(i);
     } else {
-      closePullRequest();
+      closePullRequest(i);
     }
   }
 };
 
 const mergePullRequest = pullRequestNumber => {
-  console.log(`Merging Pull Request #${number}`);
+  console.log(`Merging Pull Request #${pullRequestNumber}`);
 };
 
 const closePullRequest = pullRequestNumber => {
-  console.log(`Closing Pull Request #${number}`);
+  console.log(`Closing Pull Request #${pullRequestNumber}`);
 };
 
 main();
