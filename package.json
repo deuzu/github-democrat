@@ -9,6 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "github-api": "^3.0.0"
+    "dotenv": "^4.0.0",
+    "github-api": "^3.0.0",
+    "moment": "^2.19.1"
   }
 }
