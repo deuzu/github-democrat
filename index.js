@@ -25,13 +25,7 @@ const getRequestPromise = requestOptions => (
         return;
       }
 
-      try {
-        const json = JSON.parse(body, 'utf8');
-        resolve(json);
-      } catch (e) {
-        console.log(e);
-        resolve(e);
-      }
+      resolve(body);
     })
   })
 );
@@ -43,7 +37,11 @@ const main = async () => {
   processPullRequest(votes);
 };
 
-const getPullRequests = () => getRequestPromise({ url: pullRequestUrl + '?state=open', gzip: true, headers: { 'User-Agent': 'NodeJS' } });
+const getPullRequests = async () => {
+  const requestBody = await getRequestPromise({ url: pullRequestUrl + '?state=open', gzip: true, headers: { 'User-Agent': 'NodeJS' } });
+
+  return JSON.parse(requestBody);
+}
 
 const getPullRequestsVotes = async pullRequests => {
   const votes = {};
@@ -78,7 +76,7 @@ const getVoteResult = async pullRequestNumber => {
   return voteResult;
 }
 
-const getPullRequestReaction = pullRequestNumber => {
+const getPullRequestReaction = async pullRequestNumber => {
   const pullRequestReactionUrl = `${pullRequestUrl}/${pullRequestNumber}/reactions`;
   const options = {
     url: pullRequestReactionUrl,
@@ -89,7 +87,9 @@ const getPullRequestReaction = pullRequestNumber => {
     }
   };
 
-  return getRequestPromise(options);
+  const requestBody = await getRequestPromise(options);
+
+  return JSON.parse(requestBody);
 };
 
 const processPullRequest = pullRequestsVoteResults => {
@@ -111,11 +111,12 @@ const mergePullRequest = pullRequestNumber => {
   console.log(`Merging Pull Request #${pullRequestNumber}`);
 
   const merge = getRequestPromise({
+    method: 'PUT',
     url: pullRequestMergeUrl,
-    method: 'PUT'
+    headers: { 'Authorization': `token ${oauthToken}`, 'User-Agent': 'NodeJS' },
   });
 
-  merge.then(data => console.log(data));
+  merge.then(body => console.log(body));
 };
 
 const closePullRequest = pullRequestNumber => {
@@ -124,13 +125,13 @@ const closePullRequest = pullRequestNumber => {
   console.log(`Closing Pull Request #${pullRequestNumber}`);
 
   const close = getRequestPromise({
-    url: pullRequestCloseUrl,
     method: 'PATCH',
+    url: pullRequestCloseUrl,
     headers: { 'Authorization': `token ${oauthToken}`, 'User-Agent': 'NodeJS' },
     json: { state: 'closed' },
   });
 
-  close.then(data => console.log(data));
+  close.then(body => console.log(body));
 };
 
 main();
