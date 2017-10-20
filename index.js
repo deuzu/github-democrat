@@ -1,58 +1,45 @@
-const request = require('request');
 const moment = require('moment');
-const config = require('dotenv').config();
-const oauthToken = process.env.GITHUB_OAUTH_TOKEN;
+const log = message => console.log(`[${moment().format()}] ${message}`);
+const {
+  listPullRequests,
+  getPullRequest,
+  getIssue,
+  listPullRequestReactions,
+  mergePullRequest,
+  closePullRequest,
+} = require('./clients/github');
 
-const scheme = 'https://';
-const githubHost = 'api.github.com';
-const organization = process.env.GITHUB_ORGANIZATION;
-const repositoryName = process.env.GITHUB_REPOSITORY;
-const repositoryUrl = `${scheme}${githubHost}/repos/${organization}/${repositoryName}`;
-const pullRequestUrl = `${repositoryUrl}/issues`;
 const pullRequestLabelReadyToMerge = 'ready to merge';
 
-process.on('unhandledRejection', err => {
-  console.error(err);
+process.on('unhandledRejection', error => {
+  console.error(error);
   process.exit(1);
 });
 
-const getRequestPromise = requestOptions => (
-  new Promise((resolve, reject) => {
-    request(requestOptions, (error, response, body) => {
-      if (error || response.statusCode !== 200) {
-        reject(error);
-
-        return;
-      }
-
-      resolve(body);
-    })
-  })
-);
-
 const main = async () => {
-  const pullRequests = await getPullRequests();
+  log('Implementing democracy. Resistence is futile.');
+  const pullRequests = await listPullRequests();
   const votes = await getPullRequestsVotes(pullRequests);
 
   processPullRequest(votes);
+  log('Democracy will be back.');
 };
-
-const getPullRequests = async () => {
-  const requestBody = await getRequestPromise({ url: pullRequestUrl + '?state=open', gzip: true, headers: { 'User-Agent': 'NodeJS' } });
-
-  return JSON.parse(requestBody);
-}
 
 const getPullRequestsVotes = async pullRequests => {
   const votes = {};
 
   for (const pullRequest of pullRequests) {
-    const now = moment().utc();
-    const updatedAt24hoursForward = moment(pullRequest.updated_at).add(1, 'd');
-    const pullRequestIsMature = updatedAt24hoursForward.diff(now, 'minutes') > 0;
-    const pullRequestIsReadyToMerge = pullRequest.labels.find(element => pullRequestLabelReadyToMerge === element.name);
+    // const data = await Promise.all(getPullRequest(pullRequest.number), getIssue(pullRequest.number));
+    const singlePullRequest = await getPullRequest(pullRequest.number);
+    const issue = await getIssue(pullRequest.number);
 
-    if (!pullRequestIsMature || !pullRequestIsReadyToMerge) {
+    const pullRequestData = {
+      updated_at: singlePullRequest.updated_at,
+      labels: issue.labels,
+      mergeable: singlePullRequest.mergeable,
+    };
+
+    if (!validatePullRequest(pullRequestData)) {
       continue;
     }
 
@@ -63,7 +50,7 @@ const getPullRequestsVotes = async pullRequests => {
 }
 
 const getVoteResult = async pullRequestNumber => {
-  const reactions = await getPullRequestReaction(pullRequestNumber);
+  const reactions = await listPullRequestReactions(pullRequestNumber);
 
   let voteResult = 0;
   const voteReactionRegex = new RegExp('(\\+|-)1');
@@ -76,62 +63,29 @@ const getVoteResult = async pullRequestNumber => {
   return voteResult;
 }
 
-const getPullRequestReaction = async pullRequestNumber => {
-  const pullRequestReactionUrl = `${pullRequestUrl}/${pullRequestNumber}/reactions`;
-  const options = {
-    url: pullRequestReactionUrl,
-    gzip: true,
-    headers: {
-      'Accept': 'application/vnd.github.squirrel-girl-preview',
-      'User-Agent': 'NodeJS',
-    }
-  };
+const validatePullRequest = pullRequest => {
+  const now = moment().utc();
+  const updatedAt24hoursForward = moment(pullRequest.updated_at).utc().add(4, 'h');
+  const pullRequestIsMature = updatedAt24hoursForward.diff(now, 'minutes') < 0;
+  const pullRequestIsReadyToMerge = pullRequest.labels.find(element => pullRequestLabelReadyToMerge === element.name);
+  const pullRequestIsMergeable = pullRequest.mergeable;
 
-  const requestBody = await getRequestPromise(options);
+  return pullRequestIsMature && pullRequestIsReadyToMerge && pullRequestIsMergeable;
+}
 
-  return JSON.parse(requestBody);
-};
-
-const processPullRequest = pullRequestsVoteResults => {
+const processPullRequest = async pullRequestsVoteResults => {
   const voteResult = {};
 
   for (const i in pullRequestsVoteResults) {
     const pullRequestVoteResult = pullRequestsVoteResults[i];
     if (pullRequestVoteResult > 0) {
-      mergePullRequest(i);
+      await mergePullRequest(i);
+      log(`Pull Request #${i} has been merged.`);
     } else {
-      closePullRequest(i);
+      await closePullRequest(i);
+      log(`Pull Request #${i} has been closed.`);
     }
   }
-};
-
-const mergePullRequest = pullRequestNumber => {
-  const pullRequestMergeUrl = `${repositoryUrl}/pulls/${pullRequestNumber}/merge`;
-
-  console.log(`Merging Pull Request #${pullRequestNumber}`);
-
-  const merge = getRequestPromise({
-    method: 'PUT',
-    url: pullRequestMergeUrl,
-    headers: { 'Authorization': `token ${oauthToken}`, 'User-Agent': 'NodeJS' },
-  });
-
-  merge.then(body => console.log(body));
-};
-
-const closePullRequest = pullRequestNumber => {
-  const pullRequestCloseUrl = `${repositoryUrl}/pulls/${pullRequestNumber}`;
-
-  console.log(`Closing Pull Request #${pullRequestNumber}`);
-
-  const close = getRequestPromise({
-    method: 'PATCH',
-    url: pullRequestCloseUrl,
-    headers: { 'Authorization': `token ${oauthToken}`, 'User-Agent': 'NodeJS' },
-    json: { state: 'closed' },
-  });
-
-  close.then(body => console.log(body));
 };
 
 main();
