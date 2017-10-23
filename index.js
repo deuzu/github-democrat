@@ -5,6 +5,7 @@ const {
   getPullRequest,
   getIssue,
   listPullRequestReactions,
+  getOrganizationMembers,
   mergePullRequest,
   closePullRequest,
 } = require('./clients/github');
@@ -51,12 +52,18 @@ const getPullRequestsVotes = async pullRequests => {
 
 const getVoteResult = async pullRequestNumber => {
   const reactions = await listPullRequestReactions(pullRequestNumber);
+  const voters = await getOrganizationMembers();
 
   let voteResult = 0;
   const voteReactionRegex = new RegExp('(\\+|-)1');
 
   reactions
-    .filter(reaction => voteReactionRegex.test(reaction.content))
+    .filter(reaction => {
+      const reactionIsVote = voteReactionRegex.test(reaction.content);
+      const userHasRightToVote = voters.indexOf(reaction.user.id);
+
+      return reactionIsVote && userHasRightToVote;
+    })
     .map(reaction => voteResult = voteResult + parseInt(reaction.content))
   ;
 

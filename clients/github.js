@@ -9,6 +9,8 @@ const repositoryName = process.env.GITHUB_REPOSITORY;
 const repositoryUrl = `${scheme}${githubHost}/repos/${organization}/${repositoryName}`;
 const pullRequestUrl = `${repositoryUrl}/pulls`;
 const issueUrl = `${repositoryUrl}/issues`;
+const organizationUrl = `${scheme}${githubHost}/orgs`;
+const organizationMembersUrl = `${organizationUrl}/${organization}/members`;
 
 const requestGithub = requestOptions => {
   const defaultHeaders = {
@@ -53,6 +55,16 @@ const listPullRequestReactions = async pullRequestNumber => {
   return JSON.parse(requestBody);
 };
 
+const getOrganizationMembers = async () => {
+    const options = {
+      url: organizationMembersUrl
+    }
+
+    const requestBodyOrga = await requestGithub(options);
+
+    return JSON.parse(requestBodyOrga).map(value => ( value.id ));
+}
+
 const mergePullRequest = pullRequestNumber => {
   return requestGithub({
     method: 'PUT',
@@ -73,6 +85,7 @@ module.exports = {
   getPullRequest,
   getIssue,
   listPullRequestReactions,
+  getOrganizationMembers,
   mergePullRequest,
   closePullRequest,
 };
