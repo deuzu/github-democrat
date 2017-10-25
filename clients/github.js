@@ -72,14 +72,6 @@ const mergePullRequest = pullRequestNumber => {
   });
 };
 
-const closePullRequest = pullRequestNumber => {
-  return requestGithub({
-    method: 'PATCH',
-    url: `${repositoryUrl}/pulls/${pullRequestNumber}`,
-    json: { state: 'closed' },
-  });
-};
-
 module.exports = {
   listPullRequests,
   getPullRequest,
@@ -87,5 +79,4 @@ module.exports = {
   listPullRequestReactions,
   getOrganizationMembers,
   mergePullRequest,
-  closePullRequest,
 };

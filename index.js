@@ -1,5 +1,4 @@
 const moment = require('moment');
-const log = message => console.log(`[${moment().format()}] ${message}`);
 const {
   listPullRequests,
   getPullRequest,
@@ -7,9 +6,9 @@ const {
   listPullRequestReactions,
   getOrganizationMembers,
   mergePullRequest,
-  closePullRequest,
 } = require('./clients/github');
 
+const log = message => console.log(`[${moment().format()}] ${message}`);
 const pullRequestLabelReadyToMerge = 'ready to merge';
 
 process.on('unhandledRejection', error => {
@@ -72,7 +71,7 @@ const getVoteResult = async pullRequestNumber => {
 
 const validatePullRequest = pullRequest => {
   const now = moment().utc();
-  const updatedAt24hoursForward = moment(pullRequest.updated_at).utc().add(4, 'h');
+  const updatedAt24hoursForward = moment(pullRequest.updated_at).utc().add(24, 'h');
   const pullRequestIsMature = updatedAt24hoursForward.diff(now, 'minutes') < 0;
   const pullRequestIsReadyToMerge = pullRequest.labels.find(element => pullRequestLabelReadyToMerge === element.name);
   const pullRequestIsMergeable = pullRequest.mergeable;
@@ -89,8 +88,7 @@ const processPullRequest = async pullRequestsVoteResults => {
       await mergePullRequest(i);
       log(`Pull Request #${i} has been merged.`);
     } else {
-      await closePullRequest(i);
-      log(`Pull Request #${i} has been closed.`);
+      log(`Pull Request #${i} has been ignored.`);
     }
   }
 };
