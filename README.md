@@ -2,14 +2,14 @@ Github Democrat
 ===============
 
 The Github Democrat is a bot that enforces democracy on a repository.
-It checks open pull requests every hours and merge the ones that satisfy constraints.
+It checks open pull requests and merge the ones that satisfy constraints.
 
 The bot merges PRs that are:
   - open
   - mergeable
-  - labelled with "ready to merge"
-  - not modified for 24 hours
-  - voted positively (more :+1: than :-1: on the PR description)
+  - prefixed with "[RDY]" (configurable)
+  - last commit is older than 24 hours
+  - voted positively (more reactions :+1: than :-1: on the PR description)
 
 
 ## Installation
@@ -23,6 +23,7 @@ Edit / create the file `.env` to set the value `GITHUB_OAUTH_TOKEN`, `GITHUB_ORG
 GITHUB_OAUTH_TOKEN=12345awesometoken67890
 GITHUB_ORGANIZATION=YourOrgName
 GITHUB_REPOSITORY=RepoName
+GITHUB_PULLREQUEST_DESCRIPTION_PREFIX_READYTOMERGE=[RDY]
 ```
 
 ## Usage
