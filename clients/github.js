@@ -42,6 +42,14 @@ const getIssue = async pullRequestNumber => {
   return JSON.parse(requestBody);
 }
 
+const getLastCommit = async pullRequestNumber => {
+  const requestBody = await requestGithub({ url: `${pullRequestUrl}/${pullRequestNumber}/commits` });
+  const commits = JSON.parse(requestBody);
+  const lastCommit = commits.pop();
+
+  return lastCommit;
+}
+
 const listPullRequestReactions = async pullRequestNumber => {
   const options = {
     url: `${issueUrl}/${pullRequestNumber}/reactions`,
@@ -76,6 +84,7 @@ module.exports = {
   listPullRequests,
   getPullRequest,
   getIssue,
+  getLastCommit,
   listPullRequestReactions,
   getOrganizationMembers,
   mergePullRequest,
