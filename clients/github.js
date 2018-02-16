@@ -1,5 +1,4 @@
 const request = require('./promise.js');
-const config = require('dotenv').config();
 
 const oauthToken = process.env.GITHUB_OAUTH_TOKEN;
 const scheme = 'https://';

@@ -1,3 +1,4 @@
+const config = require('dotenv').config();
 const moment = require('moment');
 const {
   listPullRequests,
@@ -10,7 +11,7 @@ const {
 } = require('./clients/github');
 
 const log = message => console.log(`[${moment().format()}] ${message}`);
-const pullRequestLabelReadyToMerge = 'ready to merge';
+const pullRequestReadyToMergePrefix = process.env.GITHUB_PULLREQUEST_DESCRIPTION_PREFIX_READYTOMERGE;
 
 process.on('unhandledRejection', error => {
   console.error(error);
@@ -30,18 +31,18 @@ const getPullRequestsVotes = async pullRequests => {
   const votes = {};
 
   for (const pullRequest of pullRequests) {
-    // const data = await Promise.all(getPullRequest(pullRequest.number), getIssue(pullRequest.number));
+    // const data = await Promise.all(getPullRequest(pullRequest.number), getIssue(pullRequest.number), getLastCommit(pullRequest.number));
     const singlePullRequest = await getPullRequest(pullRequest.number);
     const issue = await getIssue(pullRequest.number);
     const lastCommit = await getLastCommit(pullRequest.number);
 
     const pullRequestData = {
-      updated_at: singlePullRequest.updated_at,
-      labels: issue.labels,
+      updatedAt: lastCommit.commit.committer.date,
+      title: pullRequest.title,
       mergeable: singlePullRequest.mergeable,
     };
 
-    if (!validatePullRequest(pullRequestData, lastCommit)) {
+    if (!validatePullRequest(pullRequestData)) {
       continue;
     }
 
@@ -71,11 +72,11 @@ const getVoteResult = async pullRequestNumber => {
   return voteResult;
 }
 
-const validatePullRequest = (pullRequest, lastCommit) => {
+const validatePullRequest = (pullRequest) => {
   const now = moment().utc();
-  const updatedAt24hoursForward = moment(lastCommit.commit.committer.date).utc().add(24, 'h');
+  const updatedAt24hoursForward = moment(pullRequest.updatedAt).utc().add(24, 'h');
   const pullRequestIsMature = updatedAt24hoursForward.diff(now, 'minutes') < 0;
-  const pullRequestIsReadyToMerge = pullRequest.labels.find(element => pullRequestLabelReadyToMerge === element.name);
+  const pullRequestIsReadyToMerge = pullRequest.title.trim().startsWith(pullRequestReadyToMergePrefix);
   const pullRequestIsMergeable = pullRequest.mergeable;
 
   return pullRequestIsMature && pullRequestIsReadyToMerge && pullRequestIsMergeable;
