@@ -3,6 +3,7 @@ const {
   listPullRequests,
   getPullRequest,
   getIssue,
+  getLastCommit,
   listPullRequestReactions,
   getOrganizationMembers,
   mergePullRequest,
@@ -32,6 +33,7 @@ const getPullRequestsVotes = async pullRequests => {
     // const data = await Promise.all(getPullRequest(pullRequest.number), getIssue(pullRequest.number));
     const singlePullRequest = await getPullRequest(pullRequest.number);
     const issue = await getIssue(pullRequest.number);
+    const lastCommit = await getLastCommit(pullRequest.number);
 
     const pullRequestData = {
       updated_at: singlePullRequest.updated_at,
@@ -39,7 +41,7 @@ const getPullRequestsVotes = async pullRequests => {
       mergeable: singlePullRequest.mergeable,
     };
 
-    if (!validatePullRequest(pullRequestData)) {
+    if (!validatePullRequest(pullRequestData, lastCommit)) {
       continue;
     }
 
@@ -69,9 +71,9 @@ const getVoteResult = async pullRequestNumber => {
   return voteResult;
 }
 
-const validatePullRequest = pullRequest => {
+const validatePullRequest = (pullRequest, lastCommit) => {
   const now = moment().utc();
-  const updatedAt24hoursForward = moment(pullRequest.updated_at).utc().add(24, 'h');
+  const updatedAt24hoursForward = moment(lastCommit.commit.committer.date).utc().add(24, 'h');
   const pullRequestIsMature = updatedAt24hoursForward.diff(now, 'minutes') < 0;
   const pullRequestIsReadyToMerge = pullRequest.labels.find(element => pullRequestLabelReadyToMerge === element.name);
   const pullRequestIsMergeable = pullRequest.mergeable;
@@ -86,9 +88,9 @@ const processPullRequest = async pullRequestsVoteResults => {
     const pullRequestVoteResult = pullRequestsVoteResults[i];
     if (pullRequestVoteResult > 0) {
       await mergePullRequest(i);
-      log(`Pull Request #${i} has been merged.`);
+      log(`Pull Request #${i} has been voted for merge.`);
     } else {
-      log(`Pull Request #${i} has been ignored.`);
+      log(`Pull Request #${i} has not been been voter to merge. Ignored.`);
     }
   }
 };
