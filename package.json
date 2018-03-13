@@ -1,9 +1,10 @@
 {
   "name": "github-democrat",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "v0.1.0",
+  "description": "The Github Democrat is a bot that enforces democracy on a repository.",
+  "main": "src/index.js",
   "scripts": {
+    "start": "node src/run.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

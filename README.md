@@ -9,7 +9,7 @@ The bot merges PRs that are:
   - mergeable
   - prefixed with "[RDY]" (configurable)
   - last commit is older than 24 hours
-  - voted positively (more reactions :+1: than :-1: on the PR description)
+  - voted positively (2 more reactions :+1: than :-1: on the PR description)
 
 
 ## Installation
@@ -26,14 +26,16 @@ GITHUB_REPOSITORY=RepoName
 GITHUB_PULLREQUEST_DESCRIPTION_PREFIX_READYTOMERGE=[RDY]
 ```
 
+*.env variable are overriden by nodejs environment variables*
+
 ## Usage
 
 ```bash
-node index.js
+npm start
 ```
 
 In a cron that run every hour:
 
 ```
-0 * * * * cd /path/to/github-democrat && /absolute/path/to/node index.js &>> /var/log/github-democrat.log
+0 * * * * cd /path/to/github-democrat && /absolute/path/to/node src/run.js &>> /var/log/github-democrat.log
 ```

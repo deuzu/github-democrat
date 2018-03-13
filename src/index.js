@@ -18,8 +18,8 @@ process.on('unhandledRejection', error => {
   process.exit(1);
 });
 
-const main = async () => {
-  log('Implementing democracy. Resistence is futile.');
+const run = async () => {
+  log(`Implementing democracy on ${process.env.GITHUB_ORGANIZATION}/${process.env.GITHUB_REPOSITORY}. Resistence is futile.`);
   const pullRequests = await listPullRequests();
   const votes = await getPullRequestsVotes(pullRequests);
 
@@ -87,7 +87,7 @@ const processPullRequest = async pullRequestsVoteResults => {
 
   for (const i in pullRequestsVoteResults) {
     const pullRequestVoteResult = pullRequestsVoteResults[i];
-    if (pullRequestVoteResult > 0) {
+    if (pullRequestVoteResult >= 2) {
       await mergePullRequest(i);
       log(`Pull Request #${i} has been voted for merge.`);
     } else {
@@ -96,4 +96,6 @@ const processPullRequest = async pullRequestsVoteResults => {
   }
 };
 
-main();
+module.exports = {
+  run
+};
