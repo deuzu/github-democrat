@@ -46,7 +46,7 @@ In a cron that run every hour:
 ## Serverless
 
 ```bash
-npm aws
+npm run aws
 ```
 
 *...then upload the zip to aws*
