@@ -1,4 +1,4 @@
-const githubDemocrat = require('../bin');
+const githubDemocrat = require('./bin');
 
 exports.handler = (event, context, callback) => {
     try {
