@@ -5,6 +5,10 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/run.js",
+    "aws:clean": "del-cli 'github-democrat-aws-lambda.zip' 'serverless/aws-lambda/bin/*' '!.gitignore' 'serverless/aws-lambda/node_modules/'",
+    "aws:build": "babel src -d serverless/aws-lambda/bin",
+    "aws:pack": "npm install && cp -r node_modules/ serverless/aws-lambda/ && cd ./serverless/aws-lambda/ && zip -r github-democrat-aws-lambda.zip ./* && mv github-democrat-aws-lambda.zip ../../",
+    "aws": "npm run aws:clean && npm run aws:build && npm run aws:pack",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -14,5 +18,10 @@
     "github-api": "^3.0.0",
     "moment": "^2.19.1",
     "request": "^2.83.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-preset-env": "^1.5.1",
+    "del-cli": "^1.0.0"
   }
 }

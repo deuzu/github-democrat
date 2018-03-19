@@ -28,14 +28,25 @@ GITHUB_PULLREQUEST_DESCRIPTION_PREFIX_READYTOMERGE=[RDY]
 
 *.env variable are overriden by nodejs environment variables*
 
+
 ## Usage
 
 ```bash
 npm start
 ```
 
+### Server
+
 In a cron that run every hour:
 
 ```
 0 * * * * cd /path/to/github-democrat && /absolute/path/to/node src/run.js &>> /var/log/github-democrat.log
 ```
+
+## Serverless
+
+```bash
+npm aws
+```
+
+*...then upload the zip to aws*

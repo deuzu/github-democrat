@@ -1,4 +1,3 @@
 node_modules/
-package-lock.json
 .env
-github-democrat.zip
+github-democrat-*.zip
