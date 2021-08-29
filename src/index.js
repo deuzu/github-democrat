@@ -88,10 +88,11 @@ const processPullRequest = async pullRequestsVoteResults => {
   for (const i in pullRequestsVoteResults) {
     const pullRequestVoteResult = pullRequestsVoteResults[i];
     if (pullRequestVoteResult >= 2) {
+      log(`Democracy has spoken. Pull Request #${i} has been voted for merge.`);
       await mergePullRequest(i);
-      log(`Pull Request #${i} has been voted for merge.`);
+      log(`Pull Request #${i} merged.`);
     } else {
-      log(`Pull Request #${i} has not been been voter to merge. Ignored.`);
+      log(`Democracy has spoken. Pull Request #${i} has not been been voted to merge. Ignored.`);
     }
   }
 };
